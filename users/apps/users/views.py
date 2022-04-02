@@ -1,11 +1,14 @@
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.mail import send_mail
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
-from django.urls import reverse_lazy, reverse
+from django.urls import reverse, reverse_lazy
 from django.views.generic import CreateView, View
 from django.views.generic.edit import FormView
 
-from .forms import LoginForm, UserRegisterForm
+from .forms import LoginForm, UpdatePasswordForm, UserRegisterForm
+from .functions import code_generator
 from .models import User
 
 # Create your views here.
@@ -14,8 +17,11 @@ class UserRegisterView(FormView):
     template_name = "users/register.html"
     form_class = UserRegisterForm
     success_url = "/"
+    # Generate code
+
 
     def form_valid(self, form):
+        code = code_generator()
         User.objects.create_user(
             username = form.cleaned_data.get("username"),
             email = form.cleaned_data.get("email"),
@@ -23,7 +29,12 @@ class UserRegisterView(FormView):
             names = form.cleaned_data.get("names"),
             last_names = form.cleaned_data.get("last_names"),
             genere = form.cleaned_data.get("genere"),
+            code_register = code
         )
+        # Enviar_codigo
+        asunto = "Confirmar email"
+        mensaje = "Codigo de verificacion: " +  code
+        email_remitente = "perezsantosjuanpablo@gmail.com"
         return super(UserRegisterView, self).form_valid(form)
 
 class Login(FormView):
@@ -41,7 +52,6 @@ class Login(FormView):
         login(self.request, user)
         return super(Login, self).form_valid(form)
 
-
 class LogoutView(View):
 
 
@@ -52,3 +62,23 @@ class LogoutView(View):
                 "users_app:login"
             )
         )
+
+class UpdatePassword(LoginRequiredMixin,FormView):
+    template_name = "users/update.html"
+    form_class = UpdatePasswordForm
+    success_url = reverse_lazy("users_app:login")
+    login_url = reverse_lazy("users_app:login")
+
+    def get_form_kwargs(self):
+        kwargs = super(UpdatePassword, self).get_form_kwargs()
+        kwargs.update({'user': self.request.user})
+        return kwargs
+
+
+    def form_valid(self, form):
+        usuario = self.request.user
+        new_pass = form.cleaned_data.get("new_password")
+        usuario.set_password(new_pass)
+        usuario.save()
+        logout(self.request)
+        return super(UpdatePassword, self).form_valid(form)

@@ -69,3 +69,42 @@ class LoginForm(forms.Form):
         if not authenticate(username=username,password=password):
             raise forms.ValidationError("Los datos de usuario no son correctos")
         return cleaned_data
+    
+
+class UpdatePasswordForm(forms.Form):
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user')  # To get request.user. Do not use kwargs.pop('user', None) due to potential security hole
+        super(UpdatePasswordForm, self).__init__(*args, **kwargs)
+
+
+    last_password = forms.CharField(
+        label="Contraseña",
+        required=True,
+        widget=forms.PasswordInput(
+            attrs={
+                "placeholder":"Contraseña"
+            }
+        )
+    )
+    new_password = forms.CharField(
+        label="Contraseña",
+        required=True,
+        widget=forms.PasswordInput(
+            attrs={
+                "placeholder":"Contraseña nueva"
+            }
+        )
+    )
+
+    def clean(self):
+        cleaned_data = super(UpdatePasswordForm,self).clean() #Sobrescribir los datos de esta variable
+        user = self.user
+        user = authenticate(
+            username=user.username,
+            password=self.cleaned_data.get("last_password"),
+        )
+        if not user:
+            raise forms.ValidationError("La contraseña anterior no es valida")
+        return cleaned_data
+

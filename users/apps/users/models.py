@@ -20,7 +20,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     last_names = models.CharField(max_length=30, blank=True, default="")
     genere = models.CharField(max_length=1, choices=GENERE_CHOICES, blank=True)
     is_staff = models.BooleanField(default=False)
-    
+    is_active = models.BooleanField(default=False)
+    code_register = models.CharField(max_length=6, blank=True)
+
 
     USERNAME_FIELD = "username"
     
