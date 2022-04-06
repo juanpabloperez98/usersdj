@@ -8,7 +8,7 @@
 </head>
 <body>
     <h1>Panel de usuario</h1>
-    <h3>Bienvenido: {{ user }}</h3>
+    <h3>Bienvenido: {{ user.get_full_name }}</h3>
     <p>fecha: {{ date }}</p>
     <ul>
         <li><a href="{% url 'users_app:logout' %}">Cerrar Sesion</a></li>

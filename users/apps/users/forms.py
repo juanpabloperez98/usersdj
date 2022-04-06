@@ -108,3 +108,24 @@ class UpdatePasswordForm(forms.Form):
             raise forms.ValidationError("La contraseña anterior no es valida")
         return cleaned_data
 
+
+class VerificationForm(forms.Form):
+    codregistro = forms.CharField(required=True)
+
+    def __init__(self,pk,*args,**kwargs):
+        self.id_user = pk
+        super(VerificationForm,self).__init__(*args,**kwargs)
+
+    def clean_codregistro(self):
+        code = self.cleaned_data.get("codregistro")
+
+        if len(code) == 6:
+            activo = User.objects.cod_validation(
+                self.id_user,
+                code,
+            )
+            if not activo:
+                raise forms.ValidationError("Codigo incorrecto")
+        else:
+            raise forms.ValidationError("Codigo incorrecto")
+

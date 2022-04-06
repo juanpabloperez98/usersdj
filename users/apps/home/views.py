@@ -15,7 +15,7 @@ class FechaMixin(object):
         context["date"] = datetime.now()
         return context
 
-class HomePage(LoginRequiredMixin,TemplateView):
+class HomePage(FechaMixin,LoginRequiredMixin,TemplateView):
     template_name = "home/index.html"
     login_url = reverse_lazy("users_app:login")
 
